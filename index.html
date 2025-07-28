@@ -110,34 +110,68 @@
         .preview-container {
             flex: 1;
             padding: 20px;
-            overflow: auto; /* Enable scrolling if content overflows */
+            overflow: auto; /* Enable both horizontal and vertical scrolling */
             background: #f7fafc; /* Light background for preview */
+            position: relative; /* Added for proper positioning */
+            /* Add smooth scrolling */
+            scroll-behavior: smooth;
+            /* Better scroll handling for zoom */
             display: flex;
-            align-items: center;
-            justify-content: center; /* Center content */
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 0; /* Allow flex shrinking */
         }
 
         /* Preview Area for Mermaid Diagram */
         #preview {
-            max-width: 100%;
-            max-height: 100%;
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            overflow: hidden; /* Hide overflow to allow zoom transformation */
-            /* Add this for zoom to work correctly on the SVG child */
-            display: flex; /* Make it a flex container for centering SVG */
-            justify-content: center;
-            align-items: center;
+            display: block; /* Changed from flex to block for better zoom handling */
+            min-height: 200px; /* Minimum height for empty state */
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth zoom animation */
+            /* Allow content to expand beyond container */
+            width: fit-content;
+            min-width: 300px; /* Minimum width for better appearance */
+            transform-origin: center center;
+            position: relative;
+            z-index: 1; /* Ensure preview stays above other elements */
+            /* Center content within preview */
+            text-align: center;
         }
 
-        /* Styling for the actual SVG inside preview, for zoom */
+        /* Styling for the actual SVG inside preview */
         #preview svg {
-            transition: transform 0.1s ease-out; /* Smooth zoom transition */
-            transform-origin: center center; /* Zoom from center */
-            max-width: none; /* Allow SVG to grow beyond its initial container width */
-            max-height: none; /* Allow SVG to grow beyond its initial container height */
+            display: block; /* Ensure proper display */
+            margin: 0 auto; /* Center the SVG */
+            max-width: none; /* Allow SVG to scale beyond container */
+            max-height: none; /* Allow SVG to scale beyond container */
+        }
+
+        /* Custom Scrollbar for Preview Container */
+        .preview-container::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .preview-container::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .preview-container::-webkit-scrollbar-thumb {
+            background: #a0aec0;
+            border-radius: 6px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .preview-container::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+
+        .preview-container::-webkit-scrollbar-corner {
+            background: #e2e8f0;
         }
 
         /* Toolbar Styling */
@@ -433,25 +467,6 @@
             background-size: 12px;
         }
 
-        /* Zoom Percentage Display */
-        #zoomPercentage {
-            color: #e2e8f0; /* Light text color for percentage */
-            font-size: 14px;
-            font-weight: normal;
-            margin: 0 10px; /* Adjusted margin */
-            min-width: 60px; /* Ensure enough space for 100% or 150% */
-            text-align: center; /* Center the text */
-        }
-
-        /* Zoom controls container */
-        .zoom-controls {
-            margin-left: auto;
-            display: flex;
-            gap: 8px; /* Adjusted gap between items */
-            align-items: center;
-        }
-
-
         /* Responsive Design for smaller screens */
         @media (max-width: 768px) {
             .container {
@@ -473,26 +488,16 @@
                 justify-content: center; /* Center toolbar items */
             }
             
-            .btn, .example-btn, #themeSelect, .zoom-btn {
+            .btn, .example-btn, #themeSelect {
                 font-size: 11px;
                 padding: 6px 12px;
                 width: auto; /* Reset width for small buttons */
                 height: auto;
                 border-radius: 6px; /* Match other buttons */
             }
-            .zoom-btn {
-                font-size: 14px; /* Adjust font size for smaller buttons */
-                width: 30px; /* Keep circular for smaller size */
-                height: 30px;
-                border-radius: 50%;
-            }
             .panel-header {
                 flex-wrap: wrap; /* Allow header elements to wrap */
                 height: auto;
-            }
-            #zoomPercentage {
-                font-size: 12px; /* Smaller font on small screens */
-                margin: 0 5px; /* Adjusted margin for smaller screens */
             }
         }
 
@@ -522,12 +527,332 @@
             .example-buttons {
                 width: 100%;
             }
-            .zoom-controls {
-                width: 100%;
-                justify-content: center;
-                margin-top: 5px; /* Add some spacing */
+        }
+
+        /* Zoom Controls Styling */
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .zoom-info {
+            color: #a0aec0;
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 45px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .zoom-info.highlight {
+            background: rgba(72, 187, 120, 0.2);
+            border-color: rgba(72, 187, 120, 0.4);
+            color: #48bb78;
+            font-weight: 600;
+        }
+
+        /* Updated Panel Header to accommodate zoom controls */
+        .preview-panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-panel .panel-header::before {
+            order: -1; /* Keep status dot at the beginning */
+        }
+
+        /* Zoom-enabled preview styling */
+        #preview {
+            transform-origin: center center;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Fullscreen Button Styling */
+        .fullscreen-btn {
+            background: linear-gradient(135deg, #38b2ac, #319795);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .fullscreen-btn:hover {
+            background: linear-gradient(135deg, #319795, #2c7a7b);
+            transform: scale(1.05);
+        }
+
+        .fullscreen-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Fullscreen Mode Styles */
+        .fullscreen-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #f7fafc;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fullscreen-mode .panel-header {
+            background: linear-gradient(135deg, #4a5568, #2d3748);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .fullscreen-mode .preview-container {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            background: #f7fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .fullscreen-mode #preview {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: block;
+            min-height: 200px;
+            width: fit-content;
+            min-width: 300px;
+            transform-origin: center center;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        /* Hide scrollbars in fullscreen for cleaner look */
+        .fullscreen-mode .preview-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .fullscreen-mode .preview-container::-webkit-scrollbar-track {
+            background: rgba(226, 232, 240, 0.5);
+        }
+
+        .fullscreen-mode .preview-container::-webkit-scrollbar-thumb {
+            background: rgba(160, 174, 192, 0.8);
+            border-radius: 4px;
+        }
+
+        /* Enhanced zoom info styling */
+        .zoom-info {
+            color: #a0aec0;
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 45px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .zoom-info.highlight {
+            background: rgba(72, 187, 120, 0.2);
+            border-color: rgba(72, 187, 120, 0.4);
+            color: #48bb78;
+            font-weight: 600;
+        }
+
+        /* ...existing code... */
+
+        /**
+         * Enhanced applyZoom function to work like Microsoft Photo Viewer
+         */
+        function applyZoom() {
+            let preview, zoomLevelDisplay, container;
+            
+            if (isFullscreen && fullscreenContainer) {
+                preview = fullscreenContainer.querySelector('#preview');
+                zoomLevelDisplay = fullscreenContainer.querySelector('#zoomLevel');
+                container = fullscreenContainer.querySelector('.preview-container');
+            } else {
+                preview = document.getElementById('preview');
+                zoomLevelDisplay = document.getElementById('zoomLevel');
+                container = document.querySelector('.preview-container');
+            }
+            
+            if (!preview || !zoomLevelDisplay || !container) return;
+            
+            // Get the current scroll position relative to the container center
+            const containerRect = container.getBoundingClientRect();
+            const containerCenterX = containerRect.width / 2;
+            const containerCenterY = containerRect.height / 2;
+            
+            // Calculate the center point before zoom
+            const scrollLeft = container.scrollLeft;
+            const scrollTop = container.scrollTop;
+            const beforeZoomCenterX = scrollLeft + containerCenterX;
+            const beforeZoomCenterY = scrollTop + containerCenterY;
+            
+            // Apply CSS transform to scale the preview with smooth animation
+            preview.style.transform = `scale(${currentZoomLevel})`;
+            
+            // Update zoom level display with visual feedback
+            const zoomPercentage = Math.round(currentZoomLevel * 100);
+            zoomLevelDisplay.textContent = `${zoomPercentage}%`;
+            
+            // Add visual feedback for zoom changes
+            zoomLevelDisplay.classList.add('highlight');
+            setTimeout(() => {
+                zoomLevelDisplay.classList.remove('highlight');
+            }, 500);
+            
+            // Ensure the container can handle the scaled content
+            requestAnimationFrame(() => {
+                const previewRect = preview.getBoundingClientRect();
+                const scaledWidth = previewRect.width;
+                const scaledHeight = previewRect.height;
+                
+                // Calculate the new center point after zoom
+                const afterZoomCenterX = beforeZoomCenterX * currentZoomLevel;
+                const afterZoomCenterY = beforeZoomCenterY * currentZoomLevel;
+                
+                // Calculate the new scroll position to maintain center
+                const newScrollLeft = afterZoomCenterX - containerCenterX;
+                const newScrollTop = afterZoomCenterY - containerCenterY;
+                
+                // Apply smooth scrolling to the new position
+                container.scrollTo({
+                    left: Math.max(0, newScrollLeft),
+                    top: Math.max(0, newScrollTop),
+                    behavior: 'smooth'
+                });
+                
+                // Adjust container properties for better zoom handling
+                if (currentZoomLevel > 1.0) {
+                    // For zoomed content, ensure proper spacing
+                    const padding = Math.max(50, currentZoomLevel * 20);
+                    preview.style.margin = `${padding}px`;
+                } else {
+                    // Reset margin for normal zoom
+                    preview.style.margin = '0 auto';
+                }
+                
+                // Update container alignment based on zoom level
+                if (currentZoomLevel >= 2.0) {
+                    container.style.alignItems = 'flex-start';
+                    container.style.justifyContent = 'flex-start';
+                } else {
+                    container.style.alignItems = 'center';
+                    container.style.justifyContent = 'center';
+                }
+            });
+        }
+
+        /**
+         * Enhanced zoom functions with better step calculation
+         */
+        function zoomIn() {
+            const zoomStep = currentZoomLevel < 1.0 ? 0.1 : (currentZoomLevel < 2.0 ? 0.2 : 0.5);
+            const newZoom = Math.min(currentZoomLevel + zoomStep, maxZoom);
+            if (newZoom !== currentZoomLevel) {
+                currentZoomLevel = newZoom;
+                applyZoom();
             }
         }
+
+        function zoomOut() {
+            const zoomStep = currentZoomLevel <= 1.0 ? 0.1 : (currentZoomLevel <= 2.0 ? 0.2 : 0.5);
+            const newZoom = Math.max(currentZoomLevel - zoomStep, minZoom);
+            if (newZoom !== currentZoomLevel) {
+                currentZoomLevel = newZoom;
+                applyZoom();
+            }
+        }
+
+        function resetZoom() {
+            if (currentZoomLevel !== 1.0) {
+                currentZoomLevel = 1.0;
+                applyZoom();
+                
+                // Center the content when resetting zoom
+                setTimeout(() => {
+                    const container = isFullscreen && fullscreenContainer ? 
+                        fullscreenContainer.querySelector('.preview-container') : 
+                        document.querySelector('.preview-container');
+                    
+                    if (container) {
+                        container.scrollTo({
+                            left: 0,
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 100);
+            }
+        }
+
+        // Enhanced mouse wheel listener for better zoom control
+        function addWheelListenerToContainer(container) {
+            if (container) {
+                container.addEventListener('wheel', (e) => {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        
+                        // Variable zoom amount based on current zoom level
+                        let zoomAmount;
+                        if (currentZoomLevel < 1.0) {
+                            zoomAmount = 0.05;
+                        } else if (currentZoomLevel < 2.0) {
+                            zoomAmount = 0.1;
+                        } else {
+                            zoomAmount = 0.2;
+                        }
+                        
+                        const previousZoom = currentZoomLevel;
+
+                        if (e.deltaY < 0) {
+                            currentZoomLevel = Math.min(currentZoomLevel + zoomAmount, maxZoom);
+                        } else {
+                            currentZoomLevel = Math.max(currentZoomLevel - zoomAmount, minZoom);
+                        }
+                        
+                        if (currentZoomLevel !== previousZoom) {
+                            applyZoom();
+                        }
+                    }
+                });
+            }
+        }
+
+        // ...existing code...
     </style>
 </head>
 <body>
@@ -579,12 +904,13 @@
         
         <div class="preview-panel">
             <div class="panel-header">
-                Live Preview
+                <span>Live Preview</span>
                 <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomOut()">-</button>
-                    <span id="zoomPercentage">100%</span>
-                    <button class="zoom-btn" onclick="zoomIn()">+</button>
-                    <button class="zoom-btn" onclick="resetZoom()">Reset</button>
+                    <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out (Ctrl + -)">−</button>
+                    <span class="zoom-info" id="zoomLevel">100%</span>
+                    <button class="zoom-btn" onclick="zoomIn()" title="Zoom In (Ctrl + +)">+</button>
+                    <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom (Ctrl + 0)" style="width: 40px; border-radius: 6px; font-size: 10px;">Reset</button>
+                    <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen (F11)" id="fullscreenBtn">⛶</button>
                 </div>
             </div>
             <div class="error-message" id="error-message"></div>
@@ -609,12 +935,16 @@
         const errorMessage = document.getElementById('error-message');
         const charCount = document.getElementById('char-count');
         const themeSelect = document.getElementById('themeSelect');
-        const zoomPercentageSpan = document.getElementById('zoomPercentage'); // New reference
 
         let debounceTimer; // Timer for debouncing preview updates
         let diagramCounter = 0; // Counter for unique diagram IDs
         let currentSvgString = ''; // Stores the most recently rendered SVG string for downloads
-        let currentZoomLevel = 1.0; // Current zoom level for the SVG preview
+
+        // Zoom functionality variables
+        let currentZoomLevel = 1.0; // Default zoom level (100%)
+        const minZoom = 0.3; // Minimum zoom level (30%)
+        const maxZoom = 10.0; // Maximum zoom level (1000%)
+        const zoomStep = 0.1; // Zoom increment/decrement step
 
         // Define example Mermaid diagrams
         const examples = {
@@ -765,19 +1095,6 @@
         }
 
         /**
-         * Applies the current zoom level to the SVG element in the preview.
-         * Also updates the zoom percentage display.
-         */
-        function applyZoom() {
-            const svgElement = preview.querySelector('svg');
-            if (svgElement) {
-                svgElement.style.transform = `scale(${currentZoomLevel})`;
-            }
-            // Update the zoom percentage display
-            zoomPercentageSpan.textContent = `${Math.round(currentZoomLevel * 100)}%`;
-        }
-
-        /**
          * Updates the Mermaid diagram preview with debouncing to avoid
          * excessive re-rendering during typing.
          */
@@ -788,9 +1105,12 @@
                 
                 // If no code, display a placeholder message
                 if (!code) {
-                    preview.innerHTML = '<div style="color: #a0aec0; text-align: center; font-style: italic;">Enter Mermaid code to see the preview</div>';
+                    preview.innerHTML = '<div style="color: #a0aec0; text-align: center; font-style: italic; padding: 40px;">Enter Mermaid code to see the preview</div>';
                     hideError();
                     currentSvgString = ''; // Clear stored SVG on empty editor
+                    // Reset preview container size
+                    preview.style.width = '';
+                    preview.style.height = '';
                     return;
                 }
 
@@ -812,39 +1132,17 @@
                     preview.innerHTML = svg; // Replace temp div with the rendered SVG
                     currentSvgString = svg; // Store the SVG string for download purposes
                     
-                    applyZoom(); // Apply the current zoom level after rendering
                     hideError(); // Hide any previous error messages
                 } catch (error) {
                     console.error('Mermaid rendering error:', error);
                     showError(error.message || 'Invalid Mermaid syntax');
-                    preview.innerHTML = '<div style="color: #a0aec0; text-align: center; font-style: italic;">Fix the syntax error to see the diagram</div>';
+                    preview.innerHTML = '<div style="color: #e53e3e; text-align: center; font-style: italic; padding: 40px;">Fix the syntax error to see the diagram</div>';
                     currentSvgString = ''; // Clear SVG on error
+                    // Reset preview container size
+                    preview.style.width = '';
+                    preview.style.height = '';
                 }
             }, 500); // Debounce time of 500ms
-        }
-
-        /**
-         * Increases the zoom level of the preview.
-         */
-        function zoomIn() {
-            currentZoomLevel = Math.min(currentZoomLevel + 0.1, 3.0); // Max zoom 300%
-            applyZoom();
-        }
-
-        /**
-         * Decreases the zoom level of the preview.
-         */
-        function zoomOut() {
-            currentZoomLevel = Math.max(currentZoomLevel - 0.1, 0.5); // Min zoom 50%
-            applyZoom();
-        }
-
-        /**
-         * Resets the zoom level to 100%.
-         */
-        function resetZoom() {
-            currentZoomLevel = 1.0;
-            applyZoom();
         }
 
         /**
@@ -1206,19 +1504,323 @@
             }
         });
 
-        // Add mouse wheel listener for zooming
-        preview.addEventListener('wheel', (e) => {
-            e.preventDefault(); // Prevent page scrolling
-            const zoomAmount = 0.1; // How much to zoom per scroll tick
-
-            if (e.deltaY < 0) { // Zoom in (scroll up)
-                currentZoomLevel = Math.min(currentZoomLevel + zoomAmount, 3.0);
-            } else { // Zoom out (scroll down)
-                currentZoomLevel = Math.max(currentZoomLevel - zoomAmount, 0.5);
+        /**
+         * Toggles fullscreen mode for the preview panel
+         */
+        function toggleFullscreen() {
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            if (!isFullscreen) {
+                enterFullscreen();
+                fullscreenBtn.innerHTML = '⛉'; // Exit fullscreen icon
+                fullscreenBtn.title = 'Exit Fullscreen (ESC)';
+            } else {
+                exitFullscreen();
+                fullscreenBtn.innerHTML = '⛶'; // Enter fullscreen icon
+                fullscreenBtn.title = 'Toggle Fullscreen (F11)';
             }
-            applyZoom();
+        }
+
+        /**
+         * Enters fullscreen mode
+         */
+        function enterFullscreen() {
+            isFullscreen = true;
+            
+            // Create fullscreen container
+            fullscreenContainer = document.createElement('div');
+            fullscreenContainer.className = 'fullscreen-mode fullscreen-enter';
+            
+            // Clone and modify the preview panel header
+            const originalHeader = document.querySelector('.preview-panel .panel-header');
+            const fullscreenHeader = originalHeader.cloneNode(true);
+            
+            // Update all button event handlers in cloned header
+            const fullscreenBtnInHeader = fullscreenHeader.querySelector('#fullscreenBtn');
+            if (fullscreenBtnInHeader) {
+                fullscreenBtnInHeader.innerHTML = '⛉';
+                fullscreenBtnInHeader.title = 'Exit Fullscreen (ESC)';
+                fullscreenBtnInHeader.onclick = toggleFullscreen;
+            }
+
+            // Fix zoom button event handlers
+            const zoomOutBtn = fullscreenHeader.querySelector('[onclick*="zoomOut"]');
+            if (zoomOutBtn) {
+                zoomOutBtn.onclick = zoomOut;
+            }
+
+            const zoomInBtn = fullscreenHeader.querySelector('[onclick*="zoomIn"]');
+            if (zoomInBtn) {
+                zoomInBtn.onclick = zoomIn;
+            }
+
+            const resetBtn = fullscreenHeader.querySelector('[onclick*="resetZoom"]');
+            if (resetBtn) {
+                resetBtn.onclick = resetZoom;
+            }
+            
+            // Clone the preview container
+            const originalPreviewContainer = document.querySelector('.preview-container');
+            const fullscreenPreviewContainer = originalPreviewContainer.cloneNode(true);
+            
+            // Move the actual preview content to fullscreen
+            const originalPreview = document.getElementById('preview');
+            const previewClone = originalPreview.cloneNode(true);
+            
+            // Update the preview in fullscreen container
+            const fullscreenPreview = fullscreenPreviewContainer.querySelector('#preview');
+            if (fullscreenPreview) {
+                fullscreenPreview.parentNode.replaceChild(previewClone, fullscreenPreview);
+                previewClone.id = 'preview'; // Maintain the same ID
+            }
+            
+            // Assemble fullscreen container
+            fullscreenContainer.appendChild(fullscreenHeader);
+            fullscreenContainer.appendChild(fullscreenPreviewContainer);
+            
+            // Add to body
+            document.body.appendChild(fullscreenContainer);
+            
+            // Hide original container
+            document.querySelector('.container').style.display = 'none';
+            
+            // Add wheel listener for fullscreen
+            addWheelListenerToContainer(fullscreenContainer.querySelector('.preview-container'));
+            
+            // Apply current zoom level to fullscreen preview
+            setTimeout(() => {
+                applyZoom();
+            }, 50);
+        }
+
+        /**
+         * Exits fullscreen mode
+         */
+        function exitFullscreen() {
+            isFullscreen = false;
+            
+            if (fullscreenContainer) {
+                // Add exit animation
+                fullscreenContainer.classList.remove('fullscreen-enter');
+                fullscreenContainer.classList.add('fullscreen-exit');
+                
+                // Remove fullscreen container after animation
+                setTimeout(() => {
+                    if (fullscreenContainer && fullscreenContainer.parentNode) {
+                        fullscreenContainer.parentNode.removeChild(fullscreenContainer);
+                    }
+                    fullscreenContainer = null;
+                }, 300);
+            }
+            
+            // Show original container
+            document.querySelector('.container').style.display = 'flex';
+            
+            // Apply current zoom level to original preview
+            setTimeout(() => {
+                applyZoom();
+            }, 50);
+        }
+
+        /**
+         * Zooms in by the defined zoom step
+         */
+        function zoomIn() {
+            const zoomStep = currentZoomLevel < 1.0 ? 0.1 : (currentZoomLevel < 2.0 ? 0.2 : 0.5);
+            const newZoom = Math.min(currentZoomLevel + zoomStep, maxZoom);
+            if (newZoom !== currentZoomLevel) {
+                currentZoomLevel = newZoom;
+                applyZoom();
+            }
+        }
+
+        /**
+         * Zooms out by the defined zoom step
+         */
+        function zoomOut() {
+            const zoomStep = currentZoomLevel <= 1.0 ? 0.1 : (currentZoomLevel <= 2.0 ? 0.2 : 0.5);
+            const newZoom = Math.max(currentZoomLevel - zoomStep, minZoom);
+            if (newZoom !== currentZoomLevel) {
+                currentZoomLevel = newZoom;
+                applyZoom();
+            }
+        }
+
+        /**
+         * Resets zoom to 100%
+         */
+        function resetZoom() {
+            if (currentZoomLevel !== 1.0) {
+                currentZoomLevel = 1.0;
+                applyZoom();
+                
+                // Center the content when resetting zoom
+                setTimeout(() => {
+                    const container = isFullscreen && fullscreenContainer ? 
+                        fullscreenContainer.querySelector('.preview-container') : 
+                        document.querySelector('.preview-container');
+                    
+                    if (container) {
+                        container.scrollTo({
+                            left: 0,
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 100);
+            }
+        }
+
+        /**
+         * Enhanced applyZoom function to work like Microsoft Photo Viewer
+         */
+        function applyZoom() {
+            let preview, zoomLevelDisplay, container;
+            
+            if (isFullscreen && fullscreenContainer) {
+                preview = fullscreenContainer.querySelector('#preview');
+                zoomLevelDisplay = fullscreenContainer.querySelector('#zoomLevel');
+                container = fullscreenContainer.querySelector('.preview-container');
+            } else {
+                preview = document.getElementById('preview');
+                zoomLevelDisplay = document.getElementById('zoomLevel');
+                container = document.querySelector('.preview-container');
+            }
+            
+            if (!preview || !zoomLevelDisplay || !container) return;
+            
+            // Get the current scroll position relative to the container center
+            const containerRect = container.getBoundingClientRect();
+            const containerCenterX = containerRect.width / 2;
+            const containerCenterY = containerRect.height / 2;
+            
+            // Calculate the center point before zoom
+            const scrollLeft = container.scrollLeft;
+            const scrollTop = container.scrollTop;
+            const beforeZoomCenterX = scrollLeft + containerCenterX;
+            const beforeZoomCenterY = scrollTop + containerCenterY;
+            
+            // Apply CSS transform to scale the preview with smooth animation
+            preview.style.transform = `scale(${currentZoomLevel})`;
+            
+            // Update zoom level display with visual feedback
+            const zoomPercentage = Math.round(currentZoomLevel * 100);
+            zoomLevelDisplay.textContent = `${zoomPercentage}%`;
+            
+            // Add visual feedback for zoom changes
+            zoomLevelDisplay.classList.add('highlight');
+            setTimeout(() => {
+                zoomLevelDisplay.classList.remove('highlight');
+            }, 500);
+            
+            // Ensure the container can handle the scaled content
+            requestAnimationFrame(() => {
+                const previewRect = preview.getBoundingClientRect();
+                const scaledWidth = previewRect.width;
+                const scaledHeight = previewRect.height;
+                
+                // Calculate the new center point after zoom
+                const afterZoomCenterX = beforeZoomCenterX * currentZoomLevel;
+                const afterZoomCenterY = beforeZoomCenterY * currentZoomLevel;
+                
+                // Calculate the new scroll position to maintain center
+                const newScrollLeft = afterZoomCenterX - containerCenterX;
+                const newScrollTop = afterZoomCenterY - containerCenterY;
+                
+                // Apply smooth scrolling to the new position
+                container.scrollTo({
+                    left: Math.max(0, newScrollLeft),
+                    top: Math.max(0, newScrollTop),
+                    behavior: 'smooth'
+                });
+                
+                // Adjust container properties for better zoom handling
+                if (currentZoomLevel > 1.0) {
+                    // For zoomed content, ensure proper spacing
+                    const padding = Math.max(50, currentZoomLevel * 20);
+                    preview.style.margin = `${padding}px`;
+                } else {
+                    // Reset margin for normal zoom
+                    preview.style.margin = '0 auto';
+                }
+                
+                // Update container alignment based on zoom level
+                if (currentZoomLevel >= 2.0) {
+                    container.style.alignItems = 'flex-start';
+                    container.style.justifyContent = 'flex-start';
+                } else {
+                    container.style.alignItems = 'center';
+                    container.style.justifyContent = 'center';
+                }
+            });
+        }
+
+        // Fullscreen functionality variables
+        let isFullscreen = false;
+        let fullscreenContainer = null;
+
+        // Add keyboard shortcuts for fullscreen
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey) {
+                switch(e.key) {
+                    case '0':
+                        e.preventDefault();
+                        resetZoom();
+                        break;
+                    case '=':
+                    case '+':
+                        e.preventDefault();
+                        zoomIn();
+                        break;
+                    case '-':
+                        e.preventDefault();
+                        zoomOut();
+                        break;
+                }
+            } else if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullscreen();
+            } else if (e.key === 'Escape' && isFullscreen) {
+                e.preventDefault();
+                toggleFullscreen();
+            }
         });
 
+        // Enhanced mouse wheel listener to work with specific containers
+        function addWheelListenerToContainer(container) {
+            if (container) {
+                container.addEventListener('wheel', (e) => {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        const zoomAmount = 0.1;
+                        const previousZoom = currentZoomLevel;
+
+                        if (e.deltaY < 0) {
+                            currentZoomLevel = Math.min(currentZoomLevel + zoomAmount, maxZoom);
+                        } else {
+                            currentZoomLevel = Math.max(currentZoomLevel - zoomAmount, minZoom);
+                        }
+                        
+                        if (currentZoomLevel !== previousZoom) {
+                            applyZoom();
+                        }
+                    }
+                });
+            }
+        }
+
+        // Enhanced mouse wheel listener to work with fullscreen
+        function addWheelListener() {
+            const container = document.querySelector('.preview-container');
+            addWheelListenerToContainer(container);
+        }
+
+        // Add initial wheel listener
+        addWheelListener();
+
+        // Override the original wheel listener setup
+        // Remove the existing wheel listener and use the enhanced version
+        
         // Add event listeners to example buttons after the DOM is loaded
         // This ensures 'examples' and 'loadExample' are defined when buttons are clicked.
         document.querySelectorAll('.example-btn').forEach(button => {

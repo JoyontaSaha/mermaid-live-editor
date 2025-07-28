@@ -125,7 +125,19 @@
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            overflow: auto; /* Allow preview content to scroll */
+            overflow: hidden; /* Hide overflow to allow zoom transformation */
+            /* Add this for zoom to work correctly on the SVG child */
+            display: flex; /* Make it a flex container for centering SVG */
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Styling for the actual SVG inside preview, for zoom */
+        #preview svg {
+            transition: transform 0.1s ease-out; /* Smooth zoom transition */
+            transform-origin: center center; /* Zoom from center */
+            max-width: none; /* Allow SVG to grow beyond its initial container width */
+            max-height: none; /* Allow SVG to grow beyond its initial container height */
         }
 
         /* Toolbar Styling */
@@ -162,6 +174,34 @@
 
         .btn:active {
             transform: translateY(0); /* Press effect on click */
+        }
+
+        /* Small zoom buttons specific styles */
+        .zoom-btn {
+            background: linear-gradient(135deg, #63b3ed, #4299e1);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%; /* Circular buttons */
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex-shrink: 0; /* Prevent shrinking on wrap */
+        }
+
+        .zoom-btn:hover {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            transform: scale(1.05);
+        }
+
+        .zoom-btn:active {
+            transform: scale(0.95);
         }
 
         /* Error Message Styling */
@@ -393,6 +433,25 @@
             background-size: 12px;
         }
 
+        /* Zoom Percentage Display */
+        #zoomPercentage {
+            color: #e2e8f0; /* Light text color for percentage */
+            font-size: 14px;
+            font-weight: normal;
+            margin: 0 10px; /* Adjusted margin */
+            min-width: 60px; /* Ensure enough space for 100% or 150% */
+            text-align: center; /* Center the text */
+        }
+
+        /* Zoom controls container */
+        .zoom-controls {
+            margin-left: auto;
+            display: flex;
+            gap: 8px; /* Adjusted gap between items */
+            align-items: center;
+        }
+
+
         /* Responsive Design for smaller screens */
         @media (max-width: 768px) {
             .container {
@@ -414,9 +473,26 @@
                 justify-content: center; /* Center toolbar items */
             }
             
-            .btn, .example-btn, #themeSelect {
+            .btn, .example-btn, #themeSelect, .zoom-btn {
                 font-size: 11px;
                 padding: 6px 12px;
+                width: auto; /* Reset width for small buttons */
+                height: auto;
+                border-radius: 6px; /* Match other buttons */
+            }
+            .zoom-btn {
+                font-size: 14px; /* Adjust font size for smaller buttons */
+                width: 30px; /* Keep circular for smaller size */
+                height: 30px;
+                border-radius: 50%;
+            }
+            .panel-header {
+                flex-wrap: wrap; /* Allow header elements to wrap */
+                height: auto;
+            }
+            #zoomPercentage {
+                font-size: 12px; /* Smaller font on small screens */
+                margin: 0 5px; /* Adjusted margin for smaller screens */
             }
         }
 
@@ -446,6 +522,11 @@
             .example-buttons {
                 width: 100%;
             }
+            .zoom-controls {
+                width: 100%;
+                justify-content: center;
+                margin-top: 5px; /* Add some spacing */
+            }
         }
     </style>
 </head>
@@ -457,7 +538,6 @@
             </div>
             <div class="toolbar">
                 <div class="example-buttons">
-                    <!-- Removed onclick attributes here -->
                     <button class="example-btn" data-example="flowchart">Flowchart</button>
                     <button class="example-btn" data-example="sequence">Sequence</button>
                     <button class="example-btn" data-example="gantt">Gantt</button>
@@ -500,6 +580,12 @@
         <div class="preview-panel">
             <div class="panel-header">
                 Live Preview
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="zoomOut()">-</button>
+                    <span id="zoomPercentage">100%</span>
+                    <button class="zoom-btn" onclick="zoomIn()">+</button>
+                    <button class="zoom-btn" onclick="resetZoom()">Reset</button>
+                </div>
             </div>
             <div class="error-message" id="error-message"></div>
             <div class="preview-container">
@@ -523,10 +609,12 @@
         const errorMessage = document.getElementById('error-message');
         const charCount = document.getElementById('char-count');
         const themeSelect = document.getElementById('themeSelect');
+        const zoomPercentageSpan = document.getElementById('zoomPercentage'); // New reference
 
         let debounceTimer; // Timer for debouncing preview updates
         let diagramCounter = 0; // Counter for unique diagram IDs
         let currentSvgString = ''; // Stores the most recently rendered SVG string for downloads
+        let currentZoomLevel = 1.0; // Current zoom level for the SVG preview
 
         // Define example Mermaid diagrams
         const examples = {
@@ -677,6 +765,19 @@
         }
 
         /**
+         * Applies the current zoom level to the SVG element in the preview.
+         * Also updates the zoom percentage display.
+         */
+        function applyZoom() {
+            const svgElement = preview.querySelector('svg');
+            if (svgElement) {
+                svgElement.style.transform = `scale(${currentZoomLevel})`;
+            }
+            // Update the zoom percentage display
+            zoomPercentageSpan.textContent = `${Math.round(currentZoomLevel * 100)}%`;
+        }
+
+        /**
          * Updates the Mermaid diagram preview with debouncing to avoid
          * excessive re-rendering during typing.
          */
@@ -711,6 +812,7 @@
                     preview.innerHTML = svg; // Replace temp div with the rendered SVG
                     currentSvgString = svg; // Store the SVG string for download purposes
                     
+                    applyZoom(); // Apply the current zoom level after rendering
                     hideError(); // Hide any previous error messages
                 } catch (error) {
                     console.error('Mermaid rendering error:', error);
@@ -719,6 +821,30 @@
                     currentSvgString = ''; // Clear SVG on error
                 }
             }, 500); // Debounce time of 500ms
+        }
+
+        /**
+         * Increases the zoom level of the preview.
+         */
+        function zoomIn() {
+            currentZoomLevel = Math.min(currentZoomLevel + 0.1, 3.0); // Max zoom 300%
+            applyZoom();
+        }
+
+        /**
+         * Decreases the zoom level of the preview.
+         */
+        function zoomOut() {
+            currentZoomLevel = Math.max(currentZoomLevel - 0.1, 0.5); // Min zoom 50%
+            applyZoom();
+        }
+
+        /**
+         * Resets the zoom level to 100%.
+         */
+        function resetZoom() {
+            currentZoomLevel = 1.0;
+            applyZoom();
         }
 
         /**
@@ -1080,6 +1206,19 @@
             }
         });
 
+        // Add mouse wheel listener for zooming
+        preview.addEventListener('wheel', (e) => {
+            e.preventDefault(); // Prevent page scrolling
+            const zoomAmount = 0.1; // How much to zoom per scroll tick
+
+            if (e.deltaY < 0) { // Zoom in (scroll up)
+                currentZoomLevel = Math.min(currentZoomLevel + zoomAmount, 3.0);
+            } else { // Zoom out (scroll down)
+                currentZoomLevel = Math.max(currentZoomLevel - zoomAmount, 0.5);
+            }
+            applyZoom();
+        });
+
         // Add event listeners to example buttons after the DOM is loaded
         // This ensures 'examples' and 'loadExample' are defined when buttons are clicked.
         document.querySelectorAll('.example-btn').forEach(button => {
@@ -1094,6 +1233,7 @@
         themeSelect.value = storedTheme; // Set the dropdown to the stored theme
         applyTheme(storedTheme); // Apply the stored or default theme
         loadExample('flowchart'); // Load an example diagram
+        applyZoom(); // Call applyZoom initially to show 100%
     </script>
 </body>
 </html>

@@ -4,1838 +4,250 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mermaid Live Editor</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
     <style>
-        /* General Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* Body Styling */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow: hidden; /* Prevent body scroll */
-        }
-
-        /* Main Container for Editor and Preview Panels */
-        .container {
-            display: flex;
-            height: 100vh;
-            gap: 0; /* No gap between panels for a seamless look */
-        }
-
-        /* Editor and Preview Panel Base Styles */
-        .editor-panel, .preview-panel {
-            flex: 1; /* Distribute space equally */
             display: flex;
             flex-direction: column;
-            background: rgba(255, 255, 255, 0.95); /* Slightly transparent white */
-            backdrop-filter: blur(10px); /* Frosted glass effect */
-            border-radius: 0; /* No rounded corners for full height */
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: black;
+            transition: background-color 0.3s, color 0.3s;
         }
-
-        /* Editor Panel Specific Styles */
-        .editor-panel {
-            border-right: 2px solid rgba(255, 255, 255, 0.3); /* Subtle separator */
-        }
-
-        /* Panel Header Styling */
-        .panel-header {
-            background: linear-gradient(135deg, #4a5568, #2d3748); /* Dark gradient background */
+        body.dark {
+            background-color: #333;
             color: white;
-            padding: 15px 20px;
-            font-weight: 600;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
         }
-
-        /* Status Indicator in Header */
-        .panel-header::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #48bb78; /* Green dot */
-        }
-
-        /* Editor Container */
-        .editor-container {
-            flex: 1;
-            position: relative;
-            background: #1a202c; /* Dark background for code editor */
-        }
-
-        /* Textarea Editor */
-        #editor {
-            width: 100%;
-            height: 100%;
-            border: none;
-            outline: none;
-            resize: none; /* Disable manual resizing */
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace; /* Monospaced font for code */
-            font-size: 14px;
-            line-height: 1.6;
-            padding: 20px;
-            background: #1a202c;
-            color: #e2e8f0; /* Light text color */
-            tab-size: 2; /* Adjust tab size */
-        }
-
-        /* Custom Scrollbar for Editor */
-        #editor::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #editor::-webkit-scrollbar-track {
-            background: #2d3748;
-        }
-
-        #editor::-webkit-scrollbar-thumb {
-            background: #4a5568;
-            border-radius: 4px;
-        }
-
-        #editor::-webkit-scrollbar-thumb:hover {
-            background: #718096;
-        }
-
-        /* Preview Container */
-        .preview-container {
-            flex: 1;
-            padding: 20px;
-            overflow: auto; /* Enable both horizontal and vertical scrolling */
-            background: #f7fafc; /* Light background for preview */
-            position: relative; /* Added for proper positioning */
-            /* Add smooth scrolling */
-            scroll-behavior: smooth;
-            /* Better scroll handling for zoom */
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 0; /* Allow flex shrinking */
-        }
-
-        /* Preview Area for Mermaid Diagram */
-        #preview {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            display: block; /* Changed from flex to block for better zoom handling */
-            min-height: 200px; /* Minimum height for empty state */
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth zoom animation */
-            /* Allow content to expand beyond container */
-            width: fit-content;
-            min-width: 300px; /* Minimum width for better appearance */
-            transform-origin: center center;
-            position: relative;
-            z-index: 1; /* Ensure preview stays above other elements */
-            /* Center content within preview */
-            text-align: center;
-        }
-
-        /* Styling for the actual SVG inside preview */
-        #preview svg {
-            display: block; /* Ensure proper display */
-            margin: 0 auto; /* Center the SVG */
-            max-width: none; /* Allow SVG to scale beyond container */
-            max-height: none; /* Allow SVG to scale beyond container */
-        }
-
-        /* Custom Scrollbar for Preview Container */
-        .preview-container::-webkit-scrollbar {
-            width: 12px;
-            height: 12px;
-        }
-
-        .preview-container::-webkit-scrollbar-track {
-            background: #e2e8f0;
-            border-radius: 6px;
-        }
-
-        .preview-container::-webkit-scrollbar-thumb {
-            background: #a0aec0;
-            border-radius: 6px;
-            border: 2px solid #e2e8f0;
-        }
-
-        .preview-container::-webkit-scrollbar-thumb:hover {
-            background: #718096;
-        }
-
-        .preview-container::-webkit-scrollbar-corner {
-            background: #e2e8f0;
-        }
-
-        /* Toolbar Styling */
-        .toolbar {
-            background: #f1f5f9; /* Light grey background */
-            padding: 10px 20px;
-            border-bottom: 1px solid #e2e8f0; /* Separator */
+        #toolbar {
             display: flex;
             gap: 10px;
-            align-items: center;
-            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            padding: 10px;
+            background-color: #eee;
+            border-bottom: 1px solid #ccc;
         }
-
-        /* Button Base Styles */
-        .btn {
-            background: linear-gradient(135deg, #4299e1, #3182ce); /* Blue gradient */
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.2s; /* Smooth transitions for hover/active */
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        body.dark #toolbar {
+            background-color: #444;
+            border-bottom: 1px solid #555;
         }
-
-        .btn:hover {
-            background: linear-gradient(135deg, #3182ce, #2c5282);
-            transform: translateY(-1px); /* Lift effect on hover */
-        }
-
-        .btn:active {
-            transform: translateY(0); /* Press effect on click */
-        }
-
-        /* Small zoom buttons specific styles */
-        .zoom-btn {
-            background: linear-gradient(135deg, #63b3ed, #4299e1);
-            color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%; /* Circular buttons */
-            font-size: 18px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            flex-shrink: 0; /* Prevent shrinking on wrap */
-        }
-
-        .zoom-btn:hover {
-            background: linear-gradient(135deg, #4299e1, #3182ce);
-            transform: scale(1.05);
-        }
-
-        .zoom-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Error Message Styling */
-        .error-message {
-            background: #fed7d7; /* Light red background */
-            color: #c53030; /* Dark red text */
-            padding: 15px;
-            margin: 10px;
-            border-radius: 6px;
-            border-left: 4px solid #e53e3e; /* Red border on left */
-            font-family: monospace;
-            font-size: 13px;
-            display: none; /* Hidden by default */
-        }
-
-        /* Status Bar at the bottom of Editor Panel */
-        .status-bar {
-            background: #2d3748; /* Dark grey background */
-            color: #a0aec0; /* Light grey text */
-            padding: 8px 20px;
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status-indicator::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #48bb78; /* Green indicator */
-            animation: pulse 2s infinite; /* Pulsing animation */
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Example Buttons Group */
-        .example-buttons {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        /* Individual Example Button Styles */
-        .example-btn {
-            background: transparent;
-            color: #4a5568;
-            border: 1px solid #cbd5e0;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s;
-        }
-
-        .example-btn:hover {
-            background: #e2e8f0;
-            border-color: #a0aec0;
-        }
-
-        /* Download Dropdown */
-        .download-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-btn {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: 100%; /* Position below the button */
-            left: 0;
-            background: white;
-            border-radius: 6px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            border: 1px solid #e2e8f0;
-            min-width: 120px;
-            z-index: 1000;
-            display: none; /* Hidden by default */
-            margin-top: 2px;
-        }
-
-        .dropdown-menu.show {
-            display: block; /* Show when 'show' class is added */
-            animation: dropdownFadeIn 0.2s ease-out; /* Fade-in animation */
-        }
-
-        @keyframes dropdownFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-5px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Dropdown Item Styles */
-        .dropdown-item {
-            display: block;
-            width: 100%;
-            padding: 10px 15px;
-            background: none;
-            border: none;
-            text-align: left;
-            cursor: pointer;
-            font-size: 13px;
-            color: #4a5568;
-            transition: background-color 0.2s;
-            border-radius: 0; /* No individual border-radius for items */
-        }
-
-        .dropdown-item:first-child {
-            border-radius: 6px 6px 0 0; /* Top rounded corners */
-        }
-
-        .dropdown-item:last-child {
-            border-radius: 0 0 6px 6px; /* Bottom rounded corners */
-        }
-
-        .dropdown-item:only-child {
-            border-radius: 6px; /* Fully rounded if only one item */
-        }
-
-        .dropdown-item:hover:not(:disabled) {
-            background-color: #f0f4f8; /* Light background on hover */
-        }
-
-        .dropdown-item:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            color: #a0aec0; /* Lighter color for disabled items */
-        }
-
-        .dropdown-item:disabled:hover {
-            background-color: transparent;
-        }
-        
-        /* Message Modal Styles */
-        .message-modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1001; /* Sit on top, above other elements */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-            justify-content: center; /* Center horizontally */
-            align-items: center; /* Center vertically */
-        }
-
-        .message-modal-content {
-            background-color: #fefefe;
-            padding: 30px;
-            border: 1px solid #ddd;
-            width: 90%;
-            max-width: 400px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.25);
-            position: relative;
-            text-align: center;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #333;
-        }
-
-        .message-modal-content p {
-            margin-bottom: 0; /* No extra margin below paragraph */
-        }
-
-        .close-button {
-            color: #aaa;
-            font-size: 32px;
-            font-weight: bold;
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .close-button:hover,
-        .close-button:focus {
-            color: #666;
-            text-decoration: none;
-        }
-
-        /* Theme Selector Specific Styles */
-        .theme-selector {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .theme-selector label {
-            color: #4a5568;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        #themeSelect {
-            padding: 6px 10px;
-            border: 1px solid #cbd5e0;
+        #toolbar select, #toolbar button {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
             border-radius: 4px;
             background-color: white;
-            color: #4a5568;
-            font-size: 11px;
+            color: black;
             cursor: pointer;
-            appearance: none; /* Remove default dropdown arrow */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234a5568'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* Custom arrow */
-            background-repeat: no-repeat;
-            background-position: right 8px center;
-            background-size: 12px;
         }
-
-        /* Responsive Design for smaller screens */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column; /* Stack panels vertically */
-            }
-            
-            .editor-panel {
-                border-right: none;
-                border-bottom: 2px solid rgba(255, 255, 255, 0.3); /* Add bottom border */
-                flex: 0 0 50%; /* Take 50% height on smaller screens */
-            }
-
-            .preview-panel {
-                flex: 0 0 50%; /* Take 50% height on smaller screens */
-            }
-            
-            .toolbar {
-                padding: 8px 15px;
-                justify-content: center; /* Center toolbar items */
-            }
-            
-            .btn, .example-btn, #themeSelect {
-                font-size: 11px;
-                padding: 6px 12px;
-                width: auto; /* Reset width for small buttons */
-                height: auto;
-                border-radius: 6px; /* Match other buttons */
-            }
-            .panel-header {
-                flex-wrap: wrap; /* Allow header elements to wrap */
-                height: auto;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .panel-header {
-                font-size: 14px;
-                padding: 10px 15px;
-            }
-            #editor, .preview-container {
-                padding: 15px;
-            }
-            .status-bar {
-                padding: 6px 15px;
-                font-size: 11px;
-            }
-            .download-dropdown, .theme-selector {
-                width: 100%; /* Make dropdown buttons full width */
-            }
-            .dropdown-menu {
-                min-width: unset;
-                width: 100%;
-            }
-            .btn, .example-btn, #themeSelect {
-                width: 100%; /* Make buttons and select full width */
-                justify-content: center;
-            }
-            .example-buttons {
-                width: 100%;
-            }
-        }
-
-        /* Zoom Controls Styling */
-        .zoom-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: auto;
-        }
-
-        .zoom-info {
-            color: #a0aec0;
-            font-size: 12px;
-            font-weight: 500;
-            min-width: 45px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.2s ease;
-        }
-
-        .zoom-info.highlight {
-            background: rgba(72, 187, 120, 0.2);
-            border-color: rgba(72, 187, 120, 0.4);
-            color: #48bb78;
-            font-weight: 600;
-        }
-
-        /* Updated Panel Header to accommodate zoom controls */
-        .preview-panel .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .preview-panel .panel-header::before {
-            order: -1; /* Keep status dot at the beginning */
-        }
-
-        /* Zoom-enabled preview styling */
-        #preview {
-            transform-origin: center center;
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        /* Fullscreen Button Styling */
-        .fullscreen-btn {
-            background: linear-gradient(135deg, #38b2ac, #319795);
+        body.dark #toolbar select, body.dark #toolbar button {
+            background-color: #555;
             color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
+            border-color: #666;
+        }
+        #content {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            flex-shrink: 0;
+            flex: 1;
+            overflow: hidden;
         }
-
-        .fullscreen-btn:hover {
-            background: linear-gradient(135deg, #319795, #2c7a7b);
-            transform: scale(1.05);
-        }
-
-        .fullscreen-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Fullscreen Mode Styles */
-        .fullscreen-mode {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #f7fafc;
-            z-index: 10000;
+        #editor {
+            width: 50%;
             display: flex;
             flex-direction: column;
         }
-
-        .fullscreen-mode .panel-header {
-            background: linear-gradient(135deg, #4a5568, #2d3748);
-            color: white;
-            padding: 15px 20px;
-            font-weight: 600;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .fullscreen-mode .preview-container {
+        #input {
             flex: 1;
-            padding: 20px;
+            resize: none;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: monospace;
+            background-color: inherit;
+            color: inherit;
+            border: none;
+            border-right: 1px solid #ccc;
+        }
+        body.dark #input {
+            border-right: 1px solid #555;
+        }
+        #error {
+            color: red;
+            padding: 5px 10px;
+            height: 20px;
+            overflow: hidden;
+        }
+        body.dark #error {
+            color: #ff9999;
+        }
+        #output {
+            width: 50%;
             overflow: auto;
-            background: #f7fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #f8f8f8;
         }
-
-        .fullscreen-mode #preview {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            display: block;
-            min-height: 200px;
-            width: fit-content;
-            min-width: 300px;
-            transform-origin: center center;
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            position: relative;
-            z-index: 1;
-            text-align: center;
+        body.dark #output {
+            background-color: #444;
         }
-
-        /* Hide scrollbars in fullscreen for cleaner look */
-        .fullscreen-mode .preview-container::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        #output svg {
+            transition: transform 0.3s;
+            transform-origin: top left;
         }
-
-        .fullscreen-mode .preview-container::-webkit-scrollbar-track {
-            background: rgba(226, 232, 240, 0.5);
-        }
-
-        .fullscreen-mode .preview-container::-webkit-scrollbar-thumb {
-            background: rgba(160, 174, 192, 0.8);
-            border-radius: 4px;
-        }
-
-        /* Enhanced zoom info styling */
-        .zoom-info {
-            color: #a0aec0;
-            font-size: 12px;
-            font-weight: 500;
-            min-width: 45px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.2s ease;
-        }
-
-        .zoom-info.highlight {
-            background: rgba(72, 187, 120, 0.2);
-            border-color: rgba(72, 187, 120, 0.4);
-            color: #48bb78;
-            font-weight: 600;
-        }
-
-        /* ...existing code... */
-
-        /**
-         * Enhanced applyZoom function to work like Microsoft Photo Viewer
-         */
-        function applyZoom() {
-            let preview, zoomLevelDisplay, container;
-            
-            if (isFullscreen && fullscreenContainer) {
-                preview = fullscreenContainer.querySelector('#preview');
-                zoomLevelDisplay = fullscreenContainer.querySelector('#zoomLevel');
-                container = fullscreenContainer.querySelector('.preview-container');
-            } else {
-                preview = document.getElementById('preview');
-                zoomLevelDisplay = document.getElementById('zoomLevel');
-                container = document.querySelector('.preview-container');
-            }
-            
-            if (!preview || !zoomLevelDisplay || !container) return;
-            
-            // Get the current scroll position relative to the container center
-            const containerRect = container.getBoundingClientRect();
-            const containerCenterX = containerRect.width / 2;
-            const containerCenterY = containerRect.height / 2;
-            
-            // Calculate the center point before zoom
-            const scrollLeft = container.scrollLeft;
-            const scrollTop = container.scrollTop;
-            const beforeZoomCenterX = scrollLeft + containerCenterX;
-            const beforeZoomCenterY = scrollTop + containerCenterY;
-            
-            // Apply CSS transform to scale the preview with smooth animation
-            preview.style.transform = `scale(${currentZoomLevel})`;
-            
-            // Update zoom level display with visual feedback
-            const zoomPercentage = Math.round(currentZoomLevel * 100);
-            zoomLevelDisplay.textContent = `${zoomPercentage}%`;
-            
-            // Add visual feedback for zoom changes
-            zoomLevelDisplay.classList.add('highlight');
-            setTimeout(() => {
-                zoomLevelDisplay.classList.remove('highlight');
-            }, 500);
-            
-            // Ensure the container can handle the scaled content
-            requestAnimationFrame(() => {
-                const previewRect = preview.getBoundingClientRect();
-                const scaledWidth = previewRect.width;
-                const scaledHeight = previewRect.height;
-                
-                // Calculate the new center point after zoom
-                const afterZoomCenterX = beforeZoomCenterX * currentZoomLevel;
-                const afterZoomCenterY = beforeZoomCenterY * currentZoomLevel;
-                
-                // Calculate the new scroll position to maintain center
-                const newScrollLeft = afterZoomCenterX - containerCenterX;
-                const newScrollTop = afterZoomCenterY - containerCenterY;
-                
-                // Apply smooth scrolling to the new position
-                container.scrollTo({
-                    left: Math.max(0, newScrollLeft),
-                    top: Math.max(0, newScrollTop),
-                    behavior: 'smooth'
-                });
-                
-                // Adjust container properties for better zoom handling
-                if (currentZoomLevel > 1.0) {
-                    // For zoomed content, ensure proper spacing
-                    const padding = Math.max(50, currentZoomLevel * 20);
-                    preview.style.margin = `${padding}px`;
-                } else {
-                    // Reset margin for normal zoom
-                    preview.style.margin = '0 auto';
-                }
-                
-                // Update container alignment based on zoom level
-                if (currentZoomLevel >= 2.0) {
-                    container.style.alignItems = 'flex-start';
-                    container.style.justifyContent = 'flex-start';
-                } else {
-                    container.style.alignItems = 'center';
-                    container.style.justifyContent = 'center';
-                }
-            });
-        }
-
-        /**
-         * Enhanced zoom functions with better step calculation
-         */
-        function zoomIn() {
-            const zoomStep = currentZoomLevel < 1.0 ? 0.1 : (currentZoomLevel < 2.0 ? 0.2 : 0.5);
-            const newZoom = Math.min(currentZoomLevel + zoomStep, maxZoom);
-            if (newZoom !== currentZoomLevel) {
-                currentZoomLevel = newZoom;
-                applyZoom();
-            }
-        }
-
-        function zoomOut() {
-            const zoomStep = currentZoomLevel <= 1.0 ? 0.1 : (currentZoomLevel <= 2.0 ? 0.2 : 0.5);
-            const newZoom = Math.max(currentZoomLevel - zoomStep, minZoom);
-            if (newZoom !== currentZoomLevel) {
-                currentZoomLevel = newZoom;
-                applyZoom();
-            }
-        }
-
-        function resetZoom() {
-            if (currentZoomLevel !== 1.0) {
-                currentZoomLevel = 1.0;
-                applyZoom();
-                
-                // Center the content when resetting zoom
-                setTimeout(() => {
-                    const container = isFullscreen && fullscreenContainer ? 
-                        fullscreenContainer.querySelector('.preview-container') : 
-                        document.querySelector('.preview-container');
-                    
-                    if (container) {
-                        container.scrollTo({
-                            left: 0,
-                            top: 0,
-                            behavior: 'smooth'
-                        });
-                    }
-                }, 100);
-            }
-        }
-
-        // Enhanced mouse wheel listener for better zoom control
-        function addWheelListenerToContainer(container) {
-            if (container) {
-                container.addEventListener('wheel', (e) => {
-                    if (e.ctrlKey) {
-                        e.preventDefault();
-                        
-                        // Variable zoom amount based on current zoom level
-                        let zoomAmount;
-                        if (currentZoomLevel < 1.0) {
-                            zoomAmount = 0.05;
-                        } else if (currentZoomLevel < 2.0) {
-                            zoomAmount = 0.1;
-                        } else {
-                            zoomAmount = 0.2;
-                        }
-                        
-                        const previousZoom = currentZoomLevel;
-
-                        if (e.deltaY < 0) {
-                            currentZoomLevel = Math.min(currentZoomLevel + zoomAmount, maxZoom);
-                        } else {
-                            currentZoomLevel = Math.max(currentZoomLevel - zoomAmount, minZoom);
-                        }
-                        
-                        if (currentZoomLevel !== previousZoom) {
-                            applyZoom();
-                        }
-                    }
-                });
-            }
-        }
-
-        // ...existing code...
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="editor-panel">
-            <div class="panel-header">
-                Code Editor
-            </div>
-            <div class="toolbar">
-                <div class="example-buttons">
-                    <button class="example-btn" data-example="flowchart">Flowchart</button>
-                    <button class="example-btn" data-example="sequence">Sequence</button>
-                    <button class="example-btn" data-example="gantt">Gantt</button>
-                    <button class="example-btn" data-example="pie">Pie Chart</button>
-                    <button class="example-btn" data-example="git">Git Graph</button>
-                </div>
-                <div class="theme-selector">
-                    <label for="themeSelect">Theme:</label>
-                    <select id="themeSelect" onchange="applyTheme(this.value)">
-                        <option value="default">Default</option>
-                        <option value="dark">Dark</option>
-                        <option value="forest">Forest</option>
-                        <option value="neutral">Neutral</option>
-                        <option value="ocean">Ocean (Custom)</option>
-                    </select>
-                </div>
-                <div class="download-dropdown">
-                    <button class="btn dropdown-btn" onclick="toggleDownloadMenu()">
-                        📥 Download ▼
-                    </button>
-                    <div class="dropdown-menu" id="downloadMenu">
-                        <button class="dropdown-item" onclick="downloadSVG()">📄 SVG</button>
-                        <button class="dropdown-item" onclick="downloadPNG()">🖼️ PNG</button>
-                        <button class="dropdown-item" onclick="downloadJPEG()">📸 JPEG</button>
-                    </div>
-                </div>
-                <button class="btn" onclick="copyToClipboard(this)">
-                    📋 Copy Code
-                </button>
-            </div>
-            <div class="editor-container">
-                <textarea id="editor" placeholder="Enter your Mermaid diagram code here..."></textarea>
-            </div>
-            <div class="status-bar">
-                <span class="status-indicator">Live Preview Active</span>
-                <span id="char-count">0 characters</span>
-            </div>
-        </div>
-        
-        <div class="preview-panel">
-            <div class="panel-header">
-                <span>Live Preview</span>
-                <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out (Ctrl + -)">−</button>
-                    <span class="zoom-info" id="zoomLevel">100%</span>
-                    <button class="zoom-btn" onclick="zoomIn()" title="Zoom In (Ctrl + +)">+</button>
-                    <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom (Ctrl + 0)" style="width: 40px; border-radius: 6px; font-size: 10px;">Reset</button>
-                    <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen (F11)" id="fullscreenBtn">⛶</button>
-                </div>
-            </div>
-            <div class="error-message" id="error-message"></div>
-            <div class="preview-container">
-                <div id="preview"></div>
-            </div>
-        </div>
+    <div id="toolbar">
+        <select id="mermaid-theme">
+            <option value="default">Default</option>
+            <option value="dark">Dark</option>
+            <option value="forest">Forest</option>
+            <option value="neutral">Neutral</option>
+        </select>
+        <button id="toggle-ui-theme">Toggle Dark Mode</button>
+        <button id="download-svg">Download SVG</button>
+        <button id="download-png">Download PNG</button>
+        <button id="download-jpeg">Download JPEG</button>
+        <button id="zoom-in">+</button>
+        <button id="zoom-out">-</button>
+        <button id="zoom-reset">Reset Zoom</button>
     </div>
-
-    <!-- Message Modal HTML -->
-    <div id="messageModal" class="message-modal">
-        <div class="message-modal-content">
-            <span class="close-button" onclick="closeMessageModal()">&times;</span>
-            <p id="messageText"></p>
+    <div id="content">
+        <div id="editor">
+            <textarea id="input">graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+    C --> E[End]
+    D --> E</textarea>
+            <div id="error"></div>
         </div>
+        <div id="output"></div>
     </div>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 
-    <script>
-        // Get references to DOM elements
-        const editor = document.getElementById('editor');
-        const preview = document.getElementById('preview');
-        const errorMessage = document.getElementById('error-message');
-        const charCount = document.getElementById('char-count');
-        const themeSelect = document.getElementById('themeSelect');
-
-        let debounceTimer; // Timer for debouncing preview updates
-        let diagramCounter = 0; // Counter for unique diagram IDs
-        let currentSvgString = ''; // Stores the most recently rendered SVG string for downloads
-
-        // Zoom functionality variables
-        let currentZoomLevel = 1.0; // Default zoom level (100%)
-        const minZoom = 0.3; // Minimum zoom level (30%)
-        const maxZoom = 10.0; // Maximum zoom level (1000%)
-        const zoomStep = 0.1; // Zoom increment/decrement step
-
-        // Define example Mermaid diagrams
-        const examples = {
-            flowchart: `graph TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Debug]
-    D --> E[Fix Issues]
-    E --> B
-    C --> F[End]`,
-            
-            sequence: `sequenceDiagram
-    participant A as Alice
-    participant B as Bob
-    participant C as Carol
-    
-    A->>B: Hello Bob!
-    B->>C: Hello Carol!
-    C-->>B: Hi Bob
-    B-->>A: Hi Alice`,
-            
-            gantt: `gantt
-    title Project Timeline
-    dateFormat  YYYY-MM-DD
-    section Planning
-    Research        :done, research, 2024-01-01, 2024-01-15
-    Requirements    :done, req, 2024-01-10, 2024-01-25
-    section Development
-    Frontend        :active, frontend, 2024-01-20, 2024-02-15
-    Backend         :backend, 2024-02-01, 2024-02-28
-    Testing         :testing, 2024-02-20, 2024-03-10`,
-            
-            pie: `pie title Programming Languages Usage
-    "JavaScript" : 35
-    "Python" : 25
-    "Java" : 20
-    "TypeScript" : 15
-    "Other" : 5`,
-            
-            git: `gitGraph
-    commit id: "Initial"
-    branch develop
-    checkout develop
-    commit id: "Feature A"
-    commit id: "Feature B"
-    checkout main
-    merge develop
-    commit id: "Release v1.0"`
+        let config = {
+            startOnLoad: false,
+            theme: 'default'
         };
+        mermaid.initialize(config);
 
-        // Define various Mermaid themes, including a custom one
-        const themes = {
-            default: {
-                theme: 'default',
-                themeVariables: {
-                    primaryColor: '#4299e1',
-                    primaryTextColor: '#2d3748',
-                    primaryBorderColor: '#3182ce',
-                    lineColor: '#718096',
-                    mainBkg: '#FFFFFF' // Ensure main background is set for default
-                }
-            },
-            dark: {
-                theme: 'dark',
-                themeVariables: {
-                    primaryColor: '#8E24AA', // Purple
-                    primaryTextColor: '#FFFFFF', // White text
-                    primaryBorderColor: '#AB47BC', // Lighter Purple
-                    lineColor: '#CFD8DC', // Light Grey lines
-                    mainBkg: '#1A202C' // Dark background for diagram
-                }
-            },
-            forest: {
-                theme: 'forest',
-                themeVariables: {
-                    primaryColor: '#4CAF50', // Green
-                    primaryTextColor: '#212121', // Dark text
-                    primaryBorderColor: '#66BB6A', // Lighter Green
-                    lineColor: '#757575', // Grey lines
-                    mainBkg: '#F5F5F5' // Light background
-                }
-            },
-            neutral: {
-                theme: 'neutral',
-                themeVariables: {
-                    primaryColor: '#9E9E9E', // Grey
-                    primaryTextColor: '#212121', // Dark text
-                    primaryBorderColor: '#BDBDBD', // Lighter Grey
-                    lineColor: '#757575', // Grey lines
-                    mainBkg: '#F5F5F5' // Light background
-                }
-            },
-            ocean: { // Custom theme example
-                theme: 'base', // Use base theme to control all variables
-                themeVariables: {
-                    primaryColor: '#007ACC', // Blue
-                    primaryTextColor: '#E0F2F7', // Light Blue text
-                    primaryBorderColor: '#005691', // Darker Blue
-                    lineColor: '#607D8B', // Blue-grey lines
-                    mainBkg: '#263238', // Dark blue background for diagram
-                    secondaryColor: '#4DB6AC', // Teal
-                    tertiaryColor: '#FFCCBC', // Light orange
-                    nodeBorder: '#007ACC',
-                    nodeBkg: '#007ACC',
-                    clusterBkg: '#37474F',
-                    clusterBorder: '#607D8B',
-                    edgeLabelBackground: '#263238',
-                    labelTextColor: '#E0F2F7'
-                }
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+        const errorDiv = document.getElementById('error');
+        const themeSelect = document.getElementById('mermaid-theme');
+        const toggleThemeBtn = document.getElementById('toggle-ui-theme');
+        const downloadSvgBtn = document.getElementById('download-svg');
+        const downloadPngBtn = document.getElementById('download-png');
+        const downloadJpegBtn = document.getElementById('download-jpeg');
+        const zoomInBtn = document.getElementById('zoom-in');
+        const zoomOutBtn = document.getElementById('zoom-out');
+        const zoomResetBtn = document.getElementById('zoom-reset');
+
+        let lastSvg = '';
+        let zoomLevel = 1;
+
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func(...args), delay);
+            };
+        }
+
+        const renderDiagram = async () => {
+            const graphDefinition = input.value.trim();
+            if (!graphDefinition) {
+                output.innerHTML = '';
+                errorDiv.textContent = '';
+                return;
+            }
+            try {
+                const { svg } = await mermaid.render('mermaidGraph', graphDefinition);
+                lastSvg = svg;
+                output.innerHTML = svg;
+                updateZoom();
+                errorDiv.textContent = '';
+            } catch (error) {
+                output.innerHTML = '';
+                lastSvg = '';
+                errorDiv.textContent = error.str || error.message || 'Error rendering diagram';
             }
         };
 
-        /**
-         * Applies the selected theme to Mermaid.js and updates the preview.
-         * @param {string} themeName - The name of the theme to apply.
-         */
-        function applyTheme(themeName) {
-            const selectedThemeConfig = themes[themeName];
-            if (selectedThemeConfig) {
-                // Initialize Mermaid with the new theme configuration
-                mermaid.initialize({
-                    startOnLoad: false, // Keep this false as we manually render
-                    theme: selectedThemeConfig.theme,
-                    themeVariables: selectedThemeConfig.themeVariables
-                });
-                // Save the selected theme to local storage for persistence
-                localStorage.setItem('selectedMermaidTheme', themeName);
-                // Re-render the preview with the new theme
-                updatePreview();
+        const updateZoom = () => {
+            const svgElement = output.querySelector('svg');
+            if (svgElement) {
+                svgElement.style.transform = `scale(${zoomLevel})`;
             }
-        }
+        };
 
-        /**
-         * Loads an example Mermaid diagram into the editor and updates the preview.
-         * @param {string} type - The type of example to load (e.g., 'flowchart', 'sequence').
-         */
-        function loadExample(type) {
-            editor.value = examples[type];
-            updatePreview();
-            updateCharCount();
-        }
+        const debouncedRender = debounce(renderDiagram, 500);
 
-        /**
-         * Updates the character count display.
-         */
-        function updateCharCount() {
-            charCount.textContent = `${editor.value.length} characters`;
-        }
+        input.addEventListener('input', debouncedRender);
 
-        /**
-         * Updates the Mermaid diagram preview with debouncing to avoid
-         * excessive re-rendering during typing.
-         */
-        function updatePreview() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(async () => {
-                const code = editor.value.trim();
-                
-                // If no code, display a placeholder message
-                if (!code) {
-                    preview.innerHTML = '<div style="color: #a0aec0; text-align: center; font-style: italic; padding: 40px;">Enter Mermaid code to see the preview</div>';
-                    hideError();
-                    currentSvgString = ''; // Clear stored SVG on empty editor
-                    // Reset preview container size
-                    preview.style.width = '';
-                    preview.style.height = '';
-                    return;
-                }
+        themeSelect.addEventListener('change', () => {
+            config.theme = themeSelect.value;
+            mermaid.initialize(config);
+            renderDiagram();
+        });
 
-                try {
-                    // Generate a unique ID for the Mermaid diagram element
-                    diagramCounter++;
-                    const elementId = `mermaid-diagram-${diagramCounter}`;
-                    
-                    // Clear previous preview content
-                    preview.innerHTML = '';
-                    
-                    // Create a temporary div for Mermaid to render into
-                    const tempDiv = document.createElement('div');
-                    tempDiv.id = elementId;
-                    preview.appendChild(tempDiv);
-                    
-                    // Render the Mermaid diagram
-                    const { svg } = await mermaid.render(elementId, code);
-                    preview.innerHTML = svg; // Replace temp div with the rendered SVG
-                    currentSvgString = svg; // Store the SVG string for download purposes
-                    
-                    hideError(); // Hide any previous error messages
-                } catch (error) {
-                    console.error('Mermaid rendering error:', error);
-                    showError(error.message || 'Invalid Mermaid syntax');
-                    preview.innerHTML = '<div style="color: #e53e3e; text-align: center; font-style: italic; padding: 40px;">Fix the syntax error to see the diagram</div>';
-                    currentSvgString = ''; // Clear SVG on error
-                    // Reset preview container size
-                    preview.style.width = '';
-                    preview.style.height = '';
-                }
-            }, 500); // Debounce time of 500ms
-        }
+        toggleThemeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+        });
 
-        /**
-         * Displays an error message in the dedicated error area.
-         * @param {string} message - The message to display.
-         */
-        function showError(message) {
-            errorMessage.textContent = `Error: ${message}`;
-            errorMessage.style.display = 'block';
-        }
+        downloadSvgBtn.addEventListener('click', () => {
+            if (!lastSvg) return;
+            const blob = new Blob([lastSvg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'diagram.svg';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
 
-        /**
-         * Hides the error message.
-         */
-        function hideError() {
-            errorMessage.style.display = 'none';
-        }
+        const downloadImage = (type) => {
+            if (!lastSvg) return;
+            const svgElement = output.querySelector('svg');
+            if (!svgElement) return;
+            const width = svgElement.viewBox.baseVal.width || svgElement.width.baseVal.value;
+            const height = svgElement.viewBox.baseVal.height || svgElement.height.baseVal.value;
+            const canvas = document.createElement('canvas');
+            canvas.width = width * 2; // Higher res for better quality
+            canvas.height = height * 2;
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL(`image/${type}`);
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = `diagram.${type}`;
+                a.click();
+            };
+            img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(lastSvg);
+        };
 
-        /**
-         * Toggles the visibility of the download dropdown menu.
-         */
-        function toggleDownloadMenu() {
-            const menu = document.getElementById('downloadMenu');
-            menu.classList.toggle('show');
-        }
+        downloadPngBtn.addEventListener('click', () => downloadImage('png'));
+        downloadJpegBtn.addEventListener('click', () => downloadImage('jpeg'));
 
-        /**
-         * Closes the download dropdown when clicking outside of it.
-         * @param {Event} e - The click event.
-         */
-        document.addEventListener('click', (e) => {
-            const dropdown = document.querySelector('.download-dropdown');
-            const menu = document.getElementById('downloadMenu');
-            
-            // If the click is outside the dropdown area, hide the menu
-            if (!dropdown.contains(e.target)) {
-                menu.classList.remove('show');
+        zoomInBtn.addEventListener('click', () => {
+            zoomLevel += 0.1;
+            updateZoom();
+        });
+
+        zoomOutBtn.addEventListener('click', () => {
+            if (zoomLevel > 0.2) {
+                zoomLevel -= 0.1;
+                updateZoom();
             }
         });
 
-        /**
-         * Converts an SVG string to a Canvas element.
-         * This function is crucial for downloading raster images (PNG, JPEG).
-         * @param {string} format - The desired output format ('png' or 'jpeg').
-         * @returns {Promise<HTMLCanvasElement>} A promise that resolves with the Canvas element.
-         */
-        function svgToCanvas(format = 'png') {
-            return new Promise((resolve, reject) => {
-                if (!currentSvgString) {
-                    reject(new Error('No SVG data available to convert.'));
-                    return;
-                }
-                try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const img = new Image();
-                    
-                    // Create a temporary SVG element in memory to get its true dimensions.
-                    // This is more reliable than querying from the DOM, especially for dynamically rendered SVGs.
-                    const tempSvgContainer = document.createElement('div');
-                    tempSvgContainer.style.position = 'absolute';
-                    tempSvgContainer.style.left = '-9999px';
-                    tempSvgContainer.style.top = '-9999px';
-                    tempSvgContainer.innerHTML = currentSvgString;
-                    document.body.appendChild(tempSvgContainer); // Append to DOM to allow getBoundingClientRect()
-
-                    const tempSvgElement = tempSvgContainer.querySelector('svg');
-                    if (!tempSvgElement) {
-                        document.body.removeChild(tempSvgContainer);
-                        reject(new Error('Failed to parse SVG string for dimensions.'));
-                        return;
-                    }
-
-                    // Get dimensions, prioritizing viewBox, then width/height attributes, then bounding rect
-                    let svgWidth = tempSvgElement.viewBox.baseVal.width || parseFloat(tempSvgElement.getAttribute('width')) || tempSvgElement.getBoundingClientRect().width || 800;
-                    let svgHeight = tempSvgElement.viewBox.baseVal.height || parseFloat(tempSvgElement.getAttribute('height')) || tempSvgElement.getBoundingClientRect().height || 600;
-
-                    document.body.removeChild(tempSvgContainer); // Clean up the temporary element
-
-                    // Ensure dimensions are positive integers
-                    svgWidth = Math.max(Math.floor(svgWidth), 100);
-                    svgHeight = Math.max(Math.floor(svgHeight), 100);
-                    
-                    const scale = 2; // Increase resolution for better quality raster images
-                    canvas.width = svgWidth * scale;
-                    canvas.height = svgHeight * scale;
-                    ctx.scale(scale, scale); // Apply scaling to the context
-
-                    // For JPEG, fill background with white as it doesn't support transparency
-                    if (format === 'jpeg') {
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(0, 0, svgWidth, svgHeight);
-                    }
-
-                    // Once the image is loaded, draw it onto the canvas
-                    img.onload = () => {
-                        try {
-                            ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
-                            resolve(canvas);
-                        } catch (drawError) {
-                            reject(new Error('Failed to draw image on canvas: ' + drawError.message));
-                        }
-                    };
-                    
-                    // Handle image loading errors
-                    img.onerror = (errorEvent) => {
-                        reject(new Error('Failed to load SVG as image. The SVG might contain unsupported elements or external resources.'));
-                    };
-                    
-                    // Set SVG data as image source. encodeURIComponent is crucial for data URLs.
-                    const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(currentSvgString);
-                    img.src = dataUrl;
-
-                } catch (error) {
-                    reject(new Error('SVG processing failed: ' + error.message));
-                }
-            });
-        }
-
-        /**
-         * Initiates the download of the current diagram as a PNG image.
-         */
-        async function downloadPNG() {
-            if (!currentSvgString) {
-                showMessageModal('No diagram to download. Please create a valid diagram first.');
-                return;
-            }
-
-            // Provide visual feedback on the button during processing
-            let btn = null;
-            const dropdownItems = document.querySelectorAll('.dropdown-item');
-            dropdownItems.forEach(item => {
-                if (item.textContent.includes('PNG')) {
-                    btn = item;
-                }
-            });
-
-            try {
-                if (btn) {
-                    const originalText = btn.textContent;
-                    btn.textContent = '⏳ Processing...';
-                    btn.disabled = true;
-                    btn.style.cursor = 'wait';
-                }
-                
-                // Convert SVG to canvas
-                const canvas = await svgToCanvas('png');
-                // Get data URL from canvas
-                const dataUrl = canvas.toDataURL('image/png', 1.0); // 1.0 for max quality
-                
-                // Create a temporary link element to trigger download
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = 'mermaid-diagram.png';
-                document.body.appendChild(link);
-                link.click(); // Programmatically click the link
-                document.body.removeChild(link); // Clean up the link element
-                
-                // Show success feedback and revert button state
-                if (btn) {
-                    btn.textContent = '✅ Downloaded!';
-                    setTimeout(() => {
-                        btn.textContent = '🖼️ PNG';
-                        btn.disabled = false;
-                        btn.style.cursor = 'pointer';
-                    }, 2000);
-                }
-                document.getElementById('downloadMenu').classList.remove('show'); // Close dropdown
-                
-            } catch (error) {
-                console.error('Error downloading PNG:', error);
-                showMessageModal('Failed to download PNG: ' + error.message + '\n\nThis might happen if the diagram contains complex elements. Try the SVG format instead.');
-                
-                // Restore button state on error
-                if (btn) {
-                    btn.textContent = '🖼️ PNG';
-                    btn.disabled = false;
-                    btn.style.cursor = 'pointer';
-                }
-            }
-        }
-
-        /**
-         * Initiates the download of the current diagram as a JPEG image.
-         */
-        async function downloadJPEG() {
-            if (!currentSvgString) {
-                showMessageModal('No diagram to download. Please create a valid diagram first.');
-                return;
-            }
-
-            // Provide visual feedback on the button during processing
-            let btn = null;
-            const dropdownItems = document.querySelectorAll('.dropdown-item');
-            dropdownItems.forEach(item => {
-                if (item.textContent.includes('JPEG')) {
-                    btn = item;
-                }
-            });
-
-            try {
-                if (btn) {
-                    const originalText = btn.textContent;
-                    btn.textContent = '⏳ Processing...';
-                    btn.disabled = true;
-                    btn.style.cursor = 'wait';
-                }
-                
-                // Convert SVG to canvas
-                const canvas = await svgToCanvas('jpeg');
-                // Get data URL from canvas (0.95 for JPEG quality)
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-                
-                // Create a temporary link element to trigger download
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = 'mermaid-diagram.jpg';
-                document.body.appendChild(link);
-                link.click(); // Programmatically click the link
-                document.body.removeChild(link); // Clean up the link element
-                
-                // Show success feedback and revert button state
-                if (btn) {
-                    btn.textContent = '✅ Downloaded!';
-                    setTimeout(() => {
-                        btn.textContent = '📸 JPEG';
-                        btn.disabled = false;
-                        btn.style.cursor = 'pointer';
-                    }, 2000);
-                }
-                document.getElementById('downloadMenu').classList.remove('show'); // Close dropdown
-                
-            } catch (error) {
-                console.error('Error downloading JPEG:', error);
-                showMessageModal('Failed to download JPEG: ' + error.message + '\n\nThis might happen if the diagram contains complex elements. Try the SVG format instead.');
-                
-                // Restore button state on error
-                if (btn) {
-                    btn.textContent = '📸 JPEG';
-                    btn.disabled = false;
-                    btn.style.cursor = 'pointer';
-                }
-            }
-        }
-
-        /**
-         * Initiates the download of the current diagram as an SVG file.
-         */
-        function downloadSVG() {
-            if (!currentSvgString) {
-                showMessageModal('No diagram to download. Please create a valid diagram first.');
-                return;
-            }
-            try {
-                // Create a Blob from the SVG string
-                const blob = new Blob([currentSvgString], { type: 'image/svg+xml;charset=utf-8' });
-                // Create a URL for the Blob
-                const url = URL.createObjectURL(blob);
-                
-                // Create a temporary link element
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'mermaid-diagram.svg';
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                
-                link.click(); // Programmatically click the link
-                
-                // Clean up: remove link and revoke the object URL
-                setTimeout(() => {
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                }, 100);
-                
-                document.getElementById('downloadMenu').classList.remove('show'); // Close dropdown
-                
-            } catch (error) {
-                console.error('Error downloading SVG:', error);
-                showMessageModal('Failed to download SVG: ' + error.message);
-            }
-        }
-
-        /**
-         * Copies the current editor content to the clipboard.
-         * Uses `document.execCommand('copy')` for broad compatibility in iframes.
-         * @param {HTMLElement} btn - The button element that triggered the copy action.
-         */
-        async function copyToClipboard(btn) {
-            const code = editor.value;
-            if (!code.trim()) {
-                showMessageModal('No code to copy!');
-                return;
-            }
-
-            // Create a temporary textarea to copy text from
-            const textarea = document.createElement('textarea');
-            textarea.value = code;
-            textarea.style.position = 'absolute'; // Hide it
-            textarea.style.left = '-9999px';
-            document.body.appendChild(textarea);
-            textarea.select(); // Select the text in the textarea
-
-            try {
-                // Execute the copy command
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    const originalText = btn.textContent;
-                    btn.textContent = '✅ Copied!';
-                    setTimeout(() => {
-                        btn.textContent = originalText;
-                    }, 2000);
-                } else {
-                    showMessageModal('Failed to copy to clipboard. Your browser might not support automatic copying or requires user interaction.');
-                }
-            } catch (err) {
-                console.error('Failed to copy:', err);
-                showMessageModal('Failed to copy to clipboard. An error occurred.');
-            } finally {
-                document.body.removeChild(textarea); // Clean up the temporary textarea
-            }
-        }
-
-        // --- Message Modal Functions ---
-        /**
-         * Displays a custom message modal.
-         * @param {string} message - The message to display.
-         */
-        function showMessageModal(message) {
-            document.getElementById('messageText').textContent = message;
-            document.getElementById('messageModal').style.display = 'flex'; // Use flex for centering
-        }
-
-        /**
-         * Closes the custom message modal.
-         */
-        function closeMessageModal() {
-            document.getElementById('messageModal').style.display = 'none';
-        }
-
-        // --- Event Listeners ---
-        // Listen for input changes in the editor to update preview and character count
-        editor.addEventListener('input', () => {
-            updatePreview();
-            updateCharCount();
+        zoomResetBtn.addEventListener('click', () => {
+            zoomLevel = 1;
+            updateZoom();
         });
 
-        // Add Tab key support for indentation in the editor
-        editor.addEventListener('keydown', (e) => {
-            if (e.key === 'Tab') {
-                e.preventDefault(); // Prevent default tab behavior (losing focus)
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-                // Insert two spaces (or whatever tab size you prefer)
-                editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
-                // Move cursor after the inserted spaces
-                editor.selectionStart = editor.selectionEnd = start + 2;
-                updatePreview();
-                updateCharCount();
-            }
-        });
-
-        /**
-         * Toggles fullscreen mode for the preview panel
-         */
-        function toggleFullscreen() {
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
-            
-            if (!isFullscreen) {
-                enterFullscreen();
-                fullscreenBtn.innerHTML = '⛉'; // Exit fullscreen icon
-                fullscreenBtn.title = 'Exit Fullscreen (ESC)';
-            } else {
-                exitFullscreen();
-                fullscreenBtn.innerHTML = '⛶'; // Enter fullscreen icon
-                fullscreenBtn.title = 'Toggle Fullscreen (F11)';
-            }
-        }
-
-        /**
-         * Enters fullscreen mode
-         */
-        function enterFullscreen() {
-            isFullscreen = true;
-            
-            // Create fullscreen container
-            fullscreenContainer = document.createElement('div');
-            fullscreenContainer.className = 'fullscreen-mode fullscreen-enter';
-            
-            // Clone and modify the preview panel header
-            const originalHeader = document.querySelector('.preview-panel .panel-header');
-            const fullscreenHeader = originalHeader.cloneNode(true);
-            
-            // Update all button event handlers in cloned header
-            const fullscreenBtnInHeader = fullscreenHeader.querySelector('#fullscreenBtn');
-            if (fullscreenBtnInHeader) {
-                fullscreenBtnInHeader.innerHTML = '⛉';
-                fullscreenBtnInHeader.title = 'Exit Fullscreen (ESC)';
-                fullscreenBtnInHeader.onclick = toggleFullscreen;
-            }
-
-            // Fix zoom button event handlers
-            const zoomOutBtn = fullscreenHeader.querySelector('[onclick*="zoomOut"]');
-            if (zoomOutBtn) {
-                zoomOutBtn.onclick = zoomOut;
-            }
-
-            const zoomInBtn = fullscreenHeader.querySelector('[onclick*="zoomIn"]');
-            if (zoomInBtn) {
-                zoomInBtn.onclick = zoomIn;
-            }
-
-            const resetBtn = fullscreenHeader.querySelector('[onclick*="resetZoom"]');
-            if (resetBtn) {
-                resetBtn.onclick = resetZoom;
-            }
-            
-            // Clone the preview container
-            const originalPreviewContainer = document.querySelector('.preview-container');
-            const fullscreenPreviewContainer = originalPreviewContainer.cloneNode(true);
-            
-            // Move the actual preview content to fullscreen
-            const originalPreview = document.getElementById('preview');
-            const previewClone = originalPreview.cloneNode(true);
-            
-            // Update the preview in fullscreen container
-            const fullscreenPreview = fullscreenPreviewContainer.querySelector('#preview');
-            if (fullscreenPreview) {
-                fullscreenPreview.parentNode.replaceChild(previewClone, fullscreenPreview);
-                previewClone.id = 'preview'; // Maintain the same ID
-            }
-            
-            // Assemble fullscreen container
-            fullscreenContainer.appendChild(fullscreenHeader);
-            fullscreenContainer.appendChild(fullscreenPreviewContainer);
-            
-            // Add to body
-            document.body.appendChild(fullscreenContainer);
-            
-            // Hide original container
-            document.querySelector('.container').style.display = 'none';
-            
-            // Add wheel listener for fullscreen
-            addWheelListenerToContainer(fullscreenContainer.querySelector('.preview-container'));
-            
-            // Apply current zoom level to fullscreen preview
-            setTimeout(() => {
-                applyZoom();
-            }, 50);
-        }
-
-        /**
-         * Exits fullscreen mode
-         */
-        function exitFullscreen() {
-            isFullscreen = false;
-            
-            if (fullscreenContainer) {
-                // Add exit animation
-                fullscreenContainer.classList.remove('fullscreen-enter');
-                fullscreenContainer.classList.add('fullscreen-exit');
-                
-                // Remove fullscreen container after animation
-                setTimeout(() => {
-                    if (fullscreenContainer && fullscreenContainer.parentNode) {
-                        fullscreenContainer.parentNode.removeChild(fullscreenContainer);
-                    }
-                    fullscreenContainer = null;
-                }, 300);
-            }
-            
-            // Show original container
-            document.querySelector('.container').style.display = 'flex';
-            
-            // Apply current zoom level to original preview
-            setTimeout(() => {
-                applyZoom();
-            }, 50);
-        }
-
-        /**
-         * Zooms in by the defined zoom step
-         */
-        function zoomIn() {
-            const zoomStep = currentZoomLevel < 1.0 ? 0.1 : (currentZoomLevel < 2.0 ? 0.2 : 0.5);
-            const newZoom = Math.min(currentZoomLevel + zoomStep, maxZoom);
-            if (newZoom !== currentZoomLevel) {
-                currentZoomLevel = newZoom;
-                applyZoom();
-            }
-        }
-
-        /**
-         * Zooms out by the defined zoom step
-         */
-        function zoomOut() {
-            const zoomStep = currentZoomLevel <= 1.0 ? 0.1 : (currentZoomLevel <= 2.0 ? 0.2 : 0.5);
-            const newZoom = Math.max(currentZoomLevel - zoomStep, minZoom);
-            if (newZoom !== currentZoomLevel) {
-                currentZoomLevel = newZoom;
-                applyZoom();
-            }
-        }
-
-        /**
-         * Resets zoom to 100%
-         */
-        function resetZoom() {
-            if (currentZoomLevel !== 1.0) {
-                currentZoomLevel = 1.0;
-                applyZoom();
-                
-                // Center the content when resetting zoom
-                setTimeout(() => {
-                    const container = isFullscreen && fullscreenContainer ? 
-                        fullscreenContainer.querySelector('.preview-container') : 
-                        document.querySelector('.preview-container');
-                    
-                    if (container) {
-                        container.scrollTo({
-                            left: 0,
-                            top: 0,
-                            behavior: 'smooth'
-                        });
-                    }
-                }, 100);
-            }
-        }
-
-        /**
-         * Enhanced applyZoom function to work like Microsoft Photo Viewer
-         */
-        function applyZoom() {
-            let preview, zoomLevelDisplay, container;
-            
-            if (isFullscreen && fullscreenContainer) {
-                preview = fullscreenContainer.querySelector('#preview');
-                zoomLevelDisplay = fullscreenContainer.querySelector('#zoomLevel');
-                container = fullscreenContainer.querySelector('.preview-container');
-            } else {
-                preview = document.getElementById('preview');
-                zoomLevelDisplay = document.getElementById('zoomLevel');
-                container = document.querySelector('.preview-container');
-            }
-            
-            if (!preview || !zoomLevelDisplay || !container) return;
-            
-            // Get the current scroll position relative to the container center
-            const containerRect = container.getBoundingClientRect();
-            const containerCenterX = containerRect.width / 2;
-            const containerCenterY = containerRect.height / 2;
-            
-            // Calculate the center point before zoom
-            const scrollLeft = container.scrollLeft;
-            const scrollTop = container.scrollTop;
-            const beforeZoomCenterX = scrollLeft + containerCenterX;
-            const beforeZoomCenterY = scrollTop + containerCenterY;
-            
-            // Apply CSS transform to scale the preview with smooth animation
-            preview.style.transform = `scale(${currentZoomLevel})`;
-            
-            // Update zoom level display with visual feedback
-            const zoomPercentage = Math.round(currentZoomLevel * 100);
-            zoomLevelDisplay.textContent = `${zoomPercentage}%`;
-            
-            // Add visual feedback for zoom changes
-            zoomLevelDisplay.classList.add('highlight');
-            setTimeout(() => {
-                zoomLevelDisplay.classList.remove('highlight');
-            }, 500);
-            
-            // Ensure the container can handle the scaled content
-            requestAnimationFrame(() => {
-                const previewRect = preview.getBoundingClientRect();
-                const scaledWidth = previewRect.width;
-                const scaledHeight = previewRect.height;
-                
-                // Calculate the new center point after zoom
-                const afterZoomCenterX = beforeZoomCenterX * currentZoomLevel;
-                const afterZoomCenterY = beforeZoomCenterY * currentZoomLevel;
-                
-                // Calculate the new scroll position to maintain center
-                const newScrollLeft = afterZoomCenterX - containerCenterX;
-                const newScrollTop = afterZoomCenterY - containerCenterY;
-                
-                // Apply smooth scrolling to the new position
-                container.scrollTo({
-                    left: Math.max(0, newScrollLeft),
-                    top: Math.max(0, newScrollTop),
-                    behavior: 'smooth'
-                });
-                
-                // Adjust container properties for better zoom handling
-                if (currentZoomLevel > 1.0) {
-                    // For zoomed content, ensure proper spacing
-                    const padding = Math.max(50, currentZoomLevel * 20);
-                    preview.style.margin = `${padding}px`;
-                } else {
-                    // Reset margin for normal zoom
-                    preview.style.margin = '0 auto';
-                }
-                
-                // Update container alignment based on zoom level
-                if (currentZoomLevel >= 2.0) {
-                    container.style.alignItems = 'flex-start';
-                    container.style.justifyContent = 'flex-start';
-                } else {
-                    container.style.alignItems = 'center';
-                    container.style.justifyContent = 'center';
-                }
-            });
-        }
-
-        // Fullscreen functionality variables
-        let isFullscreen = false;
-        let fullscreenContainer = null;
-
-        // Add keyboard shortcuts for fullscreen
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey) {
-                switch(e.key) {
-                    case '0':
-                        e.preventDefault();
-                        resetZoom();
-                        break;
-                    case '=':
-                    case '+':
-                        e.preventDefault();
-                        zoomIn();
-                        break;
-                    case '-':
-                        e.preventDefault();
-                        zoomOut();
-                        break;
-                }
-            } else if (e.key === 'F11') {
-                e.preventDefault();
-                toggleFullscreen();
-            } else if (e.key === 'Escape' && isFullscreen) {
-                e.preventDefault();
-                toggleFullscreen();
-            }
-        });
-
-        // Enhanced mouse wheel listener to work with specific containers
-        function addWheelListenerToContainer(container) {
-            if (container) {
-                container.addEventListener('wheel', (e) => {
-                    if (e.ctrlKey) {
-                        e.preventDefault();
-                        const zoomAmount = 0.1;
-                        const previousZoom = currentZoomLevel;
-
-                        if (e.deltaY < 0) {
-                            currentZoomLevel = Math.min(currentZoomLevel + zoomAmount, maxZoom);
-                        } else {
-                            currentZoomLevel = Math.max(currentZoomLevel - zoomAmount, minZoom);
-                        }
-                        
-                        if (currentZoomLevel !== previousZoom) {
-                            applyZoom();
-                        }
-                    }
-                });
-            }
-        }
-
-        // Enhanced mouse wheel listener to work with fullscreen
-        function addWheelListener() {
-            const container = document.querySelector('.preview-container');
-            addWheelListenerToContainer(container);
-        }
-
-        // Add initial wheel listener
-        addWheelListener();
-
-        // Override the original wheel listener setup
-        // Remove the existing wheel listener and use the enhanced version
-        
-        // Add event listeners to example buttons after the DOM is loaded
-        // This ensures 'examples' and 'loadExample' are defined when buttons are clicked.
-        document.querySelectorAll('.example-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                loadExample(button.dataset.example);
-            });
-        });
-
-        // Initialize with a flowchart example and stored theme on page load
-        // Get the last selected theme from local storage, or default to 'default'
-        const storedTheme = localStorage.getItem('selectedMermaidTheme') || 'default';
-        themeSelect.value = storedTheme; // Set the dropdown to the stored theme
-        applyTheme(storedTheme); // Apply the stored or default theme
-        loadExample('flowchart'); // Load an example diagram
-        applyZoom(); // Call applyZoom initially to show 100%
+        // Initial render
+        renderDiagram();
     </script>
 </body>
 </html>
